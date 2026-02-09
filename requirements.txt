@@ -2,4 +2,6 @@ fastapi
 python-dotenv
 uvicorn[standard]
 openai
-crawlee[all]
+crawlee[crawlers]
+beautifulsoup4
+pydantic==2.11.5
