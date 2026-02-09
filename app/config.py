@@ -26,3 +26,4 @@ MAX_DEPTH = _int("MAX_DEPTH", 2)
 CHUNK_SIZE = _int("CHUNK_SIZE", 1200)
 # Overlap amount for chunks
 CHUNK_OVERLAP = _int("CHUNK_OVERLAP", 200)
+TOP_K = _int("TOP_K", 6)

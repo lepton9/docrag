@@ -5,3 +5,5 @@ openai
 crawlee[crawlers]
 beautifulsoup4
 pydantic==2.11.5
+faiss-cpu
+numpy

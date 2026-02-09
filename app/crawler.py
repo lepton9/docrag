@@ -18,7 +18,7 @@ def crawl(
     max_pages: int,
     max_depth: int,
 ) -> list[PageDoc]:
-    crawler = BeautifulSoupCrawler(max_request_retries=1)
+    crawler = BeautifulSoupCrawler(max_request_retries=0)
     docs: list[PageDoc] = []
 
     @crawler.router.default_handler
@@ -40,7 +40,7 @@ def crawl(
         if depth >= max_depth:
             return
 
-        await ctx.enqueue_links(user_data={"depth": depth - 1})
+        await ctx.enqueue_links(user_data={"depth": depth + 1})
 
     async def _run() -> None:
         await crawler.run(urls)
