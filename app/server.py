@@ -51,7 +51,10 @@ def _allowed_urls(urls: list[str]) -> set[str]:
         try:
             p = urlparse(u)
             netloc = (p.hostname or "").lower()
-            out.add(p.scheme + "://" + netloc + "/" + p.path)
+            if (not netloc.startswith("www.")):
+                netloc = "www." + netloc
+            scheme = p.scheme or "http"
+            out.add(scheme + "://" + netloc + "/" + p.path)
         except Exception:
             continue
     return out

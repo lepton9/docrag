@@ -5,10 +5,30 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chat-RAG</title>
-  <link rel="stylesheet" href="static/styles.css">
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/script.js" defer></script>
 </head>
 
 <body>
+  <div class="flex">
+    <section id="ingest">
+      <div>
+        <label> </label>
+        <textarea id="urlsText" placeholder="https://example.com"></textarea>
+        <button id="ingestBtn">Ingest</button>
+        <pre id="ingestOut"></pre>
+      </div>
+    </section>
+
+    <section id="chat">
+      <div>
+        <label> </label>
+        <textarea id="askText"></textarea>
+        <button id="askBtn">Ask</button>
+        <pre id="answerOut"></pre>
+      </div>
+    </section>
+  </div>
 </body>
 
 </html>
