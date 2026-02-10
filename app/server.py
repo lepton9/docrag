@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 import threading
 import uuid
 from urllib.parse import urlparse
+from typing import Any
+
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -17,6 +23,8 @@ from app.crawler import crawl_async
 from app.index_store import ChunkDoc, build_and_save, IndexStore
 from app.rag import ChatMessage, rag_service
 
+PORT = "8000"
+HOST = "127.0.0.1"
 
 _SESSIONS_LOCK = threading.Lock()
 _SESSIONS: dict[str, list[ChatMessage]] = {}
@@ -138,3 +146,32 @@ def answer(req: ChatReq):
 def home():
     path = _STATIC_DIR / "index.html"
     return FileResponse(path)
+
+
+def _main() -> None:
+    import argparse
+    import os
+
+    parser = argparse.ArgumentParser(description="Run the chat-rag API server")
+    parser.add_argument("--host", default=os.getenv("HOST", HOST))
+    parser.add_argument("--port", type=int, default=int(os.getenv("PORT", PORT)))
+    parser.add_argument("--log-level", default=os.getenv("LOG_LEVEL", "info"))
+    parser.add_argument("--reload", action="store_true", default=False)
+    args = parser.parse_args()
+
+    try:
+        import uvicorn
+    except Exception as e:
+        raise SystemExit("uvicorn is required to run the server.") from e
+
+    uvicorn.run(
+        "app.server:app",
+        host=args.host,
+        port=args.port,
+        log_level=args.log_level,
+        reload=args.reload,
+    )
+
+
+if __name__ == "__main__":
+    _main()
