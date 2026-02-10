@@ -35,28 +35,22 @@ class Model:
             self._client = OpenAI(**kwargs)
         return self._client
 
-    def chat(self, *, sys_prompt: str, user_text: str, temp: float = 0.2) -> str:
-        """Get completion from the LLM"""
+    def generate_response(self, messages: list[dict[str, str]], *, temperature: float = 0.2) -> str:
+        """Generate response from a list of messages"""
         client = self._get_client()
         resp = client.chat.completions.create(
             model=self._cfg.chat_model,
-            messages=[
-                {"role": "system", "content": sys_prompt},
-                {"role": "user", "content": user_text},
-            ],
-            temperature=temp,
+            messages=messages,
+            temperature=temperature,
         )
         return (resp.choices[0].message.content or "").strip()
 
-    def embed_texts(self, texts: list[str], *, batch_size: int = 128) -> list[list[float]]:
-        """Create embeddings"""
+
+    def get_embeddings(self, texts: list[str]) -> list[list[float]]:
+        """Generate embeddings"""
         client = self._get_client()
-        vecs: list[list[float]] = []
-        for i in range(0, len(texts), batch_size):
-            batch = texts[i : i + batch_size]
-            resp = client.embeddings.create(model=self._cfg.embed_model, input=batch)
-            vecs.extend([d.embedding for d in resp.data])
-        return vecs
+        resp = client.embeddings.create(model=self._cfg.embed_model, input=texts)
+        return [r.embedding for r in resp.data]
 
     @staticmethod
     def from_env() -> Model:
@@ -70,4 +64,6 @@ class Model:
         )
         return Model(cfg)
 
-default_model = Model.from_env()
+@lru_cache(maxsize=1)
+def default_model() -> Model:
+    return Model.from_env()

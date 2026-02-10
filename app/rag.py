@@ -90,7 +90,15 @@ class RagService:
 
         text = self._get_model().generate_response(messages, temperature=0.2)
 
-        return RagAnswer(answer=text, sources=urls)
+        # Filter duplicate urls out
+        seen: set[str] = set()
+        unique: list[str] = []
+        for url in urls:
+            if url not in seen:
+                seen.add(url)
+                unique.append(url)
+
+        return RagAnswer(answer=text, sources=unique)
 
 
 def _format_context(hits: list[tuple[float, ChunkDoc]]) -> tuple[str, list[str]]:

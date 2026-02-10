@@ -60,6 +60,7 @@ class IndexStore:
         chunks: list[ChunkDoc],
         data_dir: str | None = None,
     ) -> IndexStore:
+        """Build the embeddings from provided chunks."""
         texts = [c.chunk for c in chunks]
         emb = _embed_texts(texts)
         dim = int(emb.shape[1])
@@ -87,7 +88,7 @@ class IndexStore:
         idx_path, docs_path = _paths(data_dir)
         if not idx_path.exists() or not docs_path.exists():
             raise FileNotFoundError(
-                f"Index not found. Run ingest first (missing {idx_path} or {docs_path})."
+                f"Index not found. Missing {idx_path} or {docs_path}."
             )
 
         index = faiss.read_index(str(idx_path))
@@ -105,6 +106,7 @@ class IndexStore:
     def search(self, top_k: int, query: str) -> list[tuple[float, ChunkDoc]]:
         """Search for relevant content from the embeddings."""
         query_vec = _embed_texts([query])
+        # Search for similar content
         scores, ids = self.index.search(query_vec, top_k)
         hits: list[tuple[float, ChunkDoc]] = []
         for score, idx in zip(scores[0].tolist(), ids[0].tolist()):
