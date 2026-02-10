@@ -2,7 +2,8 @@ fastapi
 python-dotenv
 uvicorn[standard]
 openai
-crawlee[all]
+crawlee[crawlers]
+lxml
 beautifulsoup4
 pydantic
 faiss-cpu
