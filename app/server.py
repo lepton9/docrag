@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 
 from app.chunker import chunk_text
 from app.config import CHUNK_OVERLAP, CHUNK_SIZE, MAX_DEPTH, MAX_PAGES, TOP_K
-from app.crawler import crawl
+from app.crawler import crawl_async
 from app.index_store import ChunkDoc, build_and_save, IndexStore
 from app.rag import ChatMessage, rag_service
 
@@ -49,12 +49,9 @@ def _allowed_urls(urls: list[str]) -> set[str]:
     out: set[str] = set()
     for u in urls:
         try:
-            p = urlparse(u)
+            p = urlparse(u, "https")
             netloc = (p.hostname or "").lower()
-            if (not netloc.startswith("www.")):
-                netloc = "www." + netloc
-            scheme = p.scheme or "http"
-            out.add(scheme + "://" + netloc + "/" + p.path)
+            out.add(p.scheme + "://" + netloc + "/" + p.path)
         except Exception:
             continue
     return out
@@ -66,14 +63,14 @@ def health():
 
 
 @app.post("/ingest")
-def ingest(req: IngestReq):
+async def ingest(req: IngestReq):
     """Add a list of domains to the data store."""
     urls = _allowed_urls(req.urls)
     if not urls:
         raise HTTPException(status_code=400, detail="No valid domains in urls")
 
     # Crawl the pages for contents
-    pages = crawl(
+    pages = await crawl_async(
         urls=urls,
         max_pages=req.max_pages or MAX_PAGES,
         max_depth=req.max_depth or MAX_DEPTH,

@@ -63,11 +63,14 @@ askBtn.onclick = async () => {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ question, session_id: sessionId }),
+  }).catch((e) => {
+    ingestOut.textContent = String(e);
+    return;
   });
 
   const body = await readBody(res);
   if (!res.ok) {
-    answerOut.textContent = body;
+    answerOut.textContent = JSON.stringify(body, null, 2);
     return;
   }
   console.log(body)
