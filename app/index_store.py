@@ -7,8 +7,8 @@ from pathlib import Path
 import faiss
 import numpy as np
 
-from app.config import DATA_DIR
-from app.model import default_model
+from config import DATA_DIR
+from model import default_model
 
 
 @dataclass

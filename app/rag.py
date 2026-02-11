@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from app.config import TOP_K
-from app.index_store import ChunkDoc
-from app.model import Model, default_model
+from index_store import ChunkDoc
+from model import Model, default_model
 
 
 _SYSTEM = (
@@ -62,30 +61,31 @@ class RagService:
         self,
         index_store,
         prompt: str,
-        top_k: int | None = None,
+        top_k: int,
         history: list[ChatMessage] | None = None,
     ) -> RagAnswer:
         """Generate an answer from user prompt"""
-        k = top_k or TOP_K
 
         # Add chat history to the prompt
         retrieval_text = prompt
         if history:
             qs = _history_user_questions(history)
             if qs:
-                retrieval_text = prompt + "\n\nPrevious questions:\n" + "\n".join(f"- {q}" for q in qs)
+                retrieval_text = prompt + "\n\nPrevious questions:\n" + \
+                    "\n".join(f"- {q}" for q in qs)
 
         # Search for relevant info using the embeddings
-        hits = index_store.search(k, retrieval_text)
+        hits = index_store.search(top_k, retrieval_text)
         context, urls = _format_context(hits)
 
-
         # Create prompt
-        messages: list[ChatMessage] = [{"role": "system", "content": self.system_prompt}]
+        messages: list[ChatMessage] = [
+            {"role": "system", "content": self.system_prompt}]
         if history:
-            messages.extend(_trim_history(history, max_messages=self.max_history_messages))
+            messages.extend(_trim_history(
+                history, max_messages=self.max_history_messages))
 
-        user_text = ( "CONTEXT\n" + context + "\n\n" + "QUESTION\n" + prompt)
+        user_text = ("CONTEXT\n" + context + "\n\n" + "QUESTION\n" + prompt)
         messages.append({"role": "user", "content": user_text})
 
         text = self._get_model().generate_response(messages, temperature=0.2)

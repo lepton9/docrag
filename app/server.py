@@ -1,27 +1,27 @@
 from __future__ import annotations
 
+from rag import ChatMessage, rag_service
+from index_store import build_and_save, IndexStore
+from crawler import crawl_async
+from config import CHUNK_OVERLAP, CHUNK_SIZE, MAX_DEPTH, MAX_PAGES, TOP_K
+from chunker import chunk_pages
+
+from pydantic import BaseModel, Field
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, HTTPException
+from dotenv import load_dotenv
+
 import sys
 from pathlib import Path
 import threading
 import uuid
 from urllib.parse import urlparse
-from typing import Any
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-from pydantic import BaseModel, Field
-
-from app.chunker import chunk_text
-from app.config import CHUNK_OVERLAP, CHUNK_SIZE, MAX_DEPTH, MAX_PAGES, TOP_K
-from app.crawler import crawl_async
-from app.index_store import ChunkDoc, build_and_save, IndexStore
-from app.rag import ChatMessage, rag_service
 
 PORT = "8000"
 HOST = "127.0.0.1"
@@ -85,22 +85,11 @@ async def ingest(req: IngestReq):
     )
 
     # Split the page contents to smaller chunks
-    chunks: list[ChunkDoc] = []
-    for p_i, p in enumerate(pages):
-        chunks.extend(
-            ChunkDoc(
-                id=f"p{p_i}-c{c_i}",
-                url=p.url,
-                title=p.title,
-                chunk=ch,
-            )
-            for c_i, ch in enumerate(
-                chunk_text(p.text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP)
-            )
-        )
+    chunks = chunk_pages(pages, CHUNK_SIZE, CHUNK_OVERLAP)
 
     if not chunks:
-        raise HTTPException(status_code=400, detail="No text extracted from provided sites")
+        raise HTTPException(
+            status_code=400, detail="No text extracted from provided sites")
 
     meta = build_and_save(chunks)
     return {
@@ -154,7 +143,8 @@ def _main() -> None:
 
     parser = argparse.ArgumentParser(description="Run the chat-rag API server")
     parser.add_argument("--host", default=os.getenv("HOST", HOST))
-    parser.add_argument("--port", type=int, default=int(os.getenv("PORT", PORT)))
+    parser.add_argument("--port", type=int,
+                        default=int(os.getenv("PORT", PORT)))
     parser.add_argument("--log-level", default=os.getenv("LOG_LEVEL", "info"))
     parser.add_argument("--reload", action="store_true", default=False)
     args = parser.parse_args()

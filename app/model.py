@@ -5,7 +5,7 @@ from functools import lru_cache
 
 from openai import OpenAI
 
-from app.config import OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_CHAT_MODEL, OPENAI_EMBED_MODEL
+from config import OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_CHAT_MODEL, OPENAI_EMBED_MODEL
 
 
 @dataclass(frozen=True)
@@ -29,10 +29,9 @@ class Model:
 
     def _get_client(self) -> OpenAI:
         if self._client is None:
-            kwargs = {"api_key": self._cfg.api_key}
-            if self._cfg.base_url:
-                kwargs["base_url"] = self._cfg.base_url
-            self._client = OpenAI(**kwargs)
+            api_key = self._cfg.api_key
+            base_url = self._cfg.base_url
+            self._client = OpenAI(api_key=api_key, base_url=base_url)
         return self._client
 
     def generate_response(self, messages: list[dict[str, str]], *, temperature: float = 0.2) -> str:
@@ -45,11 +44,11 @@ class Model:
         )
         return (resp.choices[0].message.content or "").strip()
 
-
     def get_embeddings(self, texts: list[str]) -> list[list[float]]:
         """Generate embeddings"""
         client = self._get_client()
-        resp = client.embeddings.create(model=self._cfg.embed_model, input=texts)
+        resp = client.embeddings.create(
+            model=self._cfg.embed_model, input=texts)
         return [r.embedding for r in resp.data]
 
     @staticmethod
@@ -63,6 +62,7 @@ class Model:
             embed_model=OPENAI_EMBED_MODEL,
         )
         return Model(cfg)
+
 
 @lru_cache(maxsize=1)
 def default_model() -> Model:
