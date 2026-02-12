@@ -51,6 +51,13 @@ class Model:
             model=self._cfg.embed_model, input=texts)
         return [r.embedding for r in resp.data]
 
+
+    def get_models(self):
+        """Get all the models."""
+        client = self._get_client()
+        return client.models.list()
+
+
     @staticmethod
     def from_env() -> Model:
         """Create Model from env variables"""

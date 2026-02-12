@@ -101,6 +101,12 @@ class RagService:
         return RagAnswer(answer=text, sources=unique)
 
 
+    def get_all_models(self):
+        """Get all the models."""
+        model = self._get_model()
+        return model.get_models()
+
+
 def _format_context(hits: list[tuple[float, ChunkDoc]]) -> tuple[str, list[str]]:
     """Make a formatted user prompt from the list of relevant info"""
     urls: list[str] = []

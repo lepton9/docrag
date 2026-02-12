@@ -70,6 +70,12 @@ def health():
     return {"ok": True}
 
 
+@app.get("/models")
+def models():
+    models = rag_service.get_all_models()
+    return {"models": models}
+
+
 @app.post("/ingest")
 async def ingest(req: IngestReq):
     """Add a list of domains to the data store."""
