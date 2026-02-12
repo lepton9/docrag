@@ -5,12 +5,13 @@ from dataclasses import dataclass
 from index_store import ChunkDoc
 from model import Model, default_model, ModelError
 
-
 _SYSTEM = (
-    "You are a RAG assistant. You MUST answer using ONLY the provided context extracted "
-    "from the user-supplied websites. Do not use outside knowledge. If the context does "
-    "not contain the answer, say you don't know based on the provided sites. "
-    "When you make a factual claim, cite the supporting source."
+    """
+    You are a RAG assistant. You MUST answer using ONLY the provided context 
+    extracted from the user-supplied websites. Do not use outside knowledge. If the 
+    context does not contain the answer, say you don't know based on the provided 
+    sites. When you make a factual claim, cite the supporting source.
+    """
 )
 
 

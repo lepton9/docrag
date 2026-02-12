@@ -23,6 +23,12 @@ section>div {
   padding: 1rem;
 }
 
+section>div>p {
+  color: #ffffff;
+  margin: 0;
+  padding-bottom: 10px;
+}
+
 textarea {
   width: 100%;
   min-height: 110px;
