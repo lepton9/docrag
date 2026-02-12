@@ -18,6 +18,7 @@ _SYSTEM = (
 class RagAnswer:
     answer: str
     sources: list[str]
+    tokens_used: int
 
 
 ChatMessage = dict[str, str]
@@ -101,8 +102,6 @@ class RagService:
         if (isinstance(res, ModelError)):
             return res
 
-        text = res
-
         # Filter duplicate urls out
         seen: set[str] = set()
         unique: list[str] = []
@@ -111,7 +110,11 @@ class RagService:
                 seen.add(url)
                 unique.append(url)
 
-        return RagAnswer(answer=text, sources=unique)
+        return RagAnswer(
+            answer=res.text,
+            sources=unique,
+            tokens_used=res.tokens_used
+        )
 
 
     def get_all_models(self):

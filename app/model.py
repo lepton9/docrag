@@ -15,6 +15,11 @@ class ModelType(Enum):
 class ModelError(Enum):
     InvalidModel = 1
 
+@dataclass
+class ModelResponse:
+    text: str
+    tokens_used: int = 0
+
 @dataclass(frozen=True)
 class ModelConfig:
     model_type: ModelType
@@ -42,7 +47,11 @@ class Model:
             self._client = OpenAI(api_key=api_key, base_url=base_url)
         return self._client
 
-    def generate_response(self, messages: list[dict[str, str]], *, temperature: float = 0.2) -> str | ModelError:
+    def generate_response(
+        self,
+        messages: list[dict[str, str]],
+        temperature: float = 0.2
+    ) -> ModelResponse | ModelError:
         """Generate response from a list of messages"""
         client = self._get_client()
         try:
@@ -53,7 +62,14 @@ class Model:
             )
         except NotFoundError:
             return ModelError.InvalidModel
-        return (resp.choices[0].message.content or "").strip()
+
+        tokens_used = 0
+        if (resp.usage):
+            tokens_used = resp.usage.total_tokens
+        return ModelResponse(
+            (resp.choices[0].message.content or "").strip(),
+            tokens_used
+        )
 
     def get_embeddings(self, texts: list[str]) -> list[list[float]]:
         """Generate embeddings"""

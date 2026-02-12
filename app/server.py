@@ -123,7 +123,6 @@ def answer(req: ChatReq):
     old_model = rag_service._get_model()
     # Set the used model
     if (req.model):
-        print(req.model)
         rag_service.set_model(req.model)
 
     # Generate answer
@@ -148,7 +147,12 @@ def answer(req: ChatReq):
     with _SESSIONS_LOCK:
         _SESSIONS[sid] = history
 
-    return {"answer": ans.answer, "sources": ans.sources, "session_id": sid}
+    return {
+        "answer": ans.answer,
+        "sources": ans.sources,
+        "session_id": sid,
+        "tokens": ans.tokens_used
+    }
 
 
 @app.get("/")
