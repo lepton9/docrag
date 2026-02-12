@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from index_store import ChunkDoc
-from model import Model, default_model
+from model import Model, default_model, ModelError
 
 
 _SYSTEM = (
@@ -54,8 +54,17 @@ class RagService:
         self.model = model
         self.system_prompt = system_prompt or _SYSTEM
 
+
     def _get_model(self) -> Model:
-        return self.model or default_model()
+        if (not self.model):
+            self.model = default_model()
+        return self.model
+
+
+    def set_model(self, model_name: str):
+        """Set the used model."""
+        self.model = Model.get_model(model_name)
+
 
     def answer(
         self,
@@ -63,7 +72,7 @@ class RagService:
         prompt: str,
         top_k: int,
         history: list[ChatMessage] | None = None,
-    ) -> RagAnswer:
+    ) -> RagAnswer | ModelError:
         """Generate an answer from user prompt"""
 
         # Add chat history to the prompt
@@ -88,7 +97,11 @@ class RagService:
         user_text = ("CONTEXT\n" + context + "\n\n" + "QUESTION\n" + prompt)
         messages.append({"role": "user", "content": user_text})
 
-        text = self._get_model().generate_response(messages, temperature=0.2)
+        res = self._get_model().generate_response(messages, temperature=0.2)
+        if (isinstance(res, ModelError)):
+            return res
+
+        text = res
 
         # Filter duplicate urls out
         seen: set[str] = set()

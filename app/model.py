@@ -1,15 +1,23 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 from functools import lru_cache
 
-from openai import OpenAI
+from openai import NotFoundError, OpenAI
 
 from config import OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_CHAT_MODEL, OPENAI_EMBED_MODEL
 
+# TODO: use the type
+class ModelType(Enum):
+    OpenAI = 1
+
+class ModelError(Enum):
+    InvalidModel = 1
 
 @dataclass(frozen=True)
 class ModelConfig:
+    model_type: ModelType
     api_key: str
     base_url: str | None
     chat_model: str
@@ -34,14 +42,17 @@ class Model:
             self._client = OpenAI(api_key=api_key, base_url=base_url)
         return self._client
 
-    def generate_response(self, messages: list[dict[str, str]], *, temperature: float = 0.2) -> str:
+    def generate_response(self, messages: list[dict[str, str]], *, temperature: float = 0.2) -> str | ModelError:
         """Generate response from a list of messages"""
         client = self._get_client()
-        resp = client.chat.completions.create(
-            model=self._cfg.chat_model,
-            messages=messages,
-            temperature=temperature,
-        )
+        try:
+            resp = client.chat.completions.create(
+                model=self._cfg.chat_model,
+                messages=messages,
+                temperature=temperature,
+            )
+        except NotFoundError:
+            return ModelError.InvalidModel
         return (resp.choices[0].message.content or "").strip()
 
     def get_embeddings(self, texts: list[str]) -> list[list[float]]:
@@ -59,16 +70,23 @@ class Model:
 
 
     @staticmethod
-    def from_env() -> Model:
-        """Create Model from env variables"""
+    def get_model(model_name: str) -> Model:
+        """Create OpenAI Model from model name."""
         base_url = (OPENAI_BASE_URL or "").strip() or None
         cfg = ModelConfig(
+            model_type=ModelType.OpenAI,
             api_key=OPENAI_API_KEY,
             base_url=base_url,
-            chat_model=OPENAI_CHAT_MODEL,
+            chat_model=model_name,
             embed_model=OPENAI_EMBED_MODEL,
         )
         return Model(cfg)
+
+
+    @staticmethod
+    def from_env() -> Model:
+        """Create Model from env variables."""
+        return Model.get_model(OPENAI_CHAT_MODEL)
 
 
 @lru_cache(maxsize=1)

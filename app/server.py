@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from rag import ChatMessage, rag_service
+from model import ModelError
 from index_store import build_and_save, IndexStore
 from crawler import crawl_async
 from config import CHUNK_OVERLAP, CHUNK_SIZE, MAX_DEPTH, MAX_PAGES, TOP_K
@@ -50,6 +51,7 @@ class ChatReq(BaseModel):
     question: str = Field(..., min_length=1)
     top_k: int | None = None
     session_id: str | None = None
+    model: str | None = None
 
 
 def _allowed_urls(urls: list[str]) -> set[str]:
@@ -118,6 +120,12 @@ def answer(req: ChatReq):
     with _SESSIONS_LOCK:
         history = list(_SESSIONS.get(sid, []))
 
+    old_model = rag_service._get_model()
+    # Set the used model
+    if (req.model):
+        print(req.model)
+        rag_service.set_model(req.model)
+
     # Generate answer
     ans = rag_service.answer(
         index_store,
@@ -125,6 +133,12 @@ def answer(req: ChatReq):
         top_k=req.top_k or TOP_K,
         history=history,
     )
+
+    if (isinstance(ans, ModelError)):
+        if (ans == ModelError.InvalidModel):
+            rag_service.model = old_model
+            raise HTTPException(status_code=400, detail=f"Invalid model '{req.model}'")
+        raise HTTPException(status_code=400, detail=str(ans))
 
     # Add to history
     history.append({"role": "user", "content": req.question})

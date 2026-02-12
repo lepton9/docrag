@@ -62,7 +62,11 @@ askBtn.onclick = async () => {
   const res = await fetch("/answer", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question, session_id: sessionId }),
+    body: JSON.stringify({
+      question: question,
+      session_id: sessionId,
+      model: null,
+    }),
   }).catch((e) => {
     ingestOut.textContent = String(e);
     return;
