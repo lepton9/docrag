@@ -16,7 +16,7 @@ OPENAI_EMBED_MODEL = os.getenv("OPENAI_EMBED_MODEL", "text-embedding-3-small")
 
 # Dir for saving data
 DATA_DIR = os.getenv("DATA_DIR", "data")
-USER_AGENT = os.getenv("USER_AGENT", "tim-rag/0.1")
+USER_AGENT = os.getenv("USER_AGENT", "docrag/0.1")
 
 # Max amount of pages to search from
 MAX_PAGES = _int("MAX_PAGES", 30)

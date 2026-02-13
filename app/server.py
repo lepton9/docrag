@@ -41,7 +41,7 @@ _MAX_SESSION_MESSAGES = 20
 
 load_dotenv()
 
-app = FastAPI(title="chat-rag")
+app = FastAPI(title="docrag")
 
 _STATIC_DIR = Path(__file__).resolve().parent / "static"
 
@@ -184,7 +184,7 @@ def _main() -> None:
     import argparse
     import os
 
-    parser = argparse.ArgumentParser(description="Run the chat-rag API server")
+    parser = argparse.ArgumentParser(description="Run the docrag API server")
     parser.add_argument("--host", default=os.getenv("HOST", HOST))
     parser.add_argument("--port", type=int,
                         default=int(os.getenv("PORT", PORT)))
