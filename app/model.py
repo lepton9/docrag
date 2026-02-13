@@ -3,10 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
-
-from openai import NotFoundError, OpenAI
+from openai import NotFoundError, OpenAI, types
 
 from config import OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_CHAT_MODEL, OPENAI_EMBED_MODEL
+
+MAX_TOKENS_EMBED = 300_000
 
 # TODO: use the type
 class ModelType(Enum):
@@ -69,15 +70,38 @@ class Model:
             tokens_used
         )
 
-    def get_embeddings(self, texts: list[str]) -> list[list[float]]:
+    def get_embeddings(self, text_chunks: list[str]) -> list[list[float]]:
         """Generate embeddings"""
         client = self._get_client()
-        # TODO: handle error
-        # split the texts into smaller lists
-        # errors if over 300,000 tokens in one request
-        resp = client.embeddings.create(
-            model=self._cfg.embed_model, input=texts)
-        return [r.embedding for r in resp.data]
+
+        if (text_chunks == []):
+            return []
+
+        # Calculate the amount of chunks to process in one request
+        total_chunks = len(text_chunks)
+        reference_chunk = text_chunks[0]
+        tokens_per_chunk = calc_tokens_approx(reference_chunk)
+        total_chunk_tokens = tokens_per_chunk * total_chunks
+        batches: int = max(1, -(-total_chunk_tokens // MAX_TOKENS_EMBED))
+        batch_len = total_chunks // batches
+
+        # Get embeddings for the batches
+        datas: list[types.Embedding] = []
+        tokens_used = 0
+        i = 0
+        while (i < total_chunks):
+            end = min(total_chunks, i + batch_len)
+            batch: list[str] = text_chunks[i:end]
+            resp = client.embeddings.create(
+                model=self._cfg.embed_model,
+                input=batch,
+            )
+            datas.extend(resp.data)
+            if resp.usage:
+                tokens_used += resp.usage.total_tokens
+            i = end
+
+        return [r.embedding for r in datas]
 
 
     def get_models(self):
@@ -109,3 +133,9 @@ class Model:
 @lru_cache(maxsize=1)
 def default_model() -> Model:
     return Model.from_env()
+
+
+def calc_tokens_approx(text: str) -> int:
+    """Approximate the token count of the text."""
+    char_to_token = 4
+    return len(text) // char_to_token
