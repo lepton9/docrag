@@ -71,8 +71,9 @@ class IndexStore:
     def save(self) -> dict:
         """Write the embeddings to disk."""
         idx_path, docs_path = _paths(self.data_dir)
+        idx_path.touch()
         faiss.write_index(self.index, str(idx_path))
-        with docs_path.open("w", encoding="utf-8") as f:
+        with docs_path.open("w+", encoding="utf-8") as f:
             for c in self.docs:
                 f.write(json.dumps(asdict(c), ensure_ascii=True) + "\n")
 

@@ -74,6 +74,9 @@ class Model:
     def get_embeddings(self, texts: list[str]) -> list[list[float]]:
         """Generate embeddings"""
         client = self._get_client()
+        # TODO: handle error
+        # split the texts into smaller lists
+        # errors if over 300,000 tokens in one request
         resp = client.embeddings.create(
             model=self._cfg.embed_model, input=texts)
         return [r.embedding for r in resp.data]

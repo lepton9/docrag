@@ -19,9 +19,9 @@ DATA_DIR = os.getenv("DATA_DIR", "data")
 USER_AGENT = os.getenv("USER_AGENT", "tim-rag/0.1")
 
 # Max amount of pages to search from
-MAX_PAGES = _int("MAX_PAGES", 50)
+MAX_PAGES = _int("MAX_PAGES", 30)
 # Max depth for the pages
-MAX_DEPTH = _int("MAX_DEPTH", 2)
+MAX_DEPTH = _int("MAX_DEPTH", 0)
 
 # Chunk size for the embeds
 CHUNK_SIZE = _int("CHUNK_SIZE", 1200)
