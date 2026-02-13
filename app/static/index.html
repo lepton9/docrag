@@ -13,7 +13,7 @@
   <div class="sections">
     <section id="ingest">
       <div>
-        <p>Add sites</p>
+        <p class="section-header">Add sites</p>
         <textarea id="urlsText" placeholder="https://example.com"></textarea>
         <button id="ingestBtn">Ingest</button>
         <pre id="ingestOut"></pre>
@@ -22,9 +22,12 @@
 
     <section id="chat">
       <div>
-        <p>Chat</p>
+        <p class="section-header">Chat</p>
         <textarea id="askText"></textarea>
-        <button id="askBtn">Ask</button>
+        <div class="ask-row">
+          <button id="askBtn">Ask</button>
+          <span id="tokensUsed" class="token-meta"></span>
+        </div>
         <pre id="answerOut"></pre>
       </div>
     </section>

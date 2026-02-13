@@ -1,4 +1,5 @@
 from __future__ import annotations
+from dataclasses import dataclass
 
 from rag import ChatMessage, rag_service
 from model import ModelError
@@ -27,8 +28,14 @@ if str(_REPO_ROOT) not in sys.path:
 PORT = "8000"
 HOST = "127.0.0.1"
 
+@dataclass
+class Session:
+    id: str
+    history: list[ChatMessage]
+    tokens_used: int
+
 _SESSIONS_LOCK = threading.Lock()
-_SESSIONS: dict[str, list[ChatMessage]] = {}
+_SESSIONS: dict[str, Session] = {}
 _MAX_SESSION_MESSAGES = 20
 
 
@@ -118,7 +125,11 @@ def answer(req: ChatReq):
     # Retrieve history
     sid = (req.session_id or "").strip() or uuid.uuid4().hex
     with _SESSIONS_LOCK:
-        history = list(_SESSIONS.get(sid, []))
+        session = _SESSIONS.get(sid)
+        if session is None:
+            session = Session(id=sid, history=[], tokens_used=0)
+            _SESSIONS[sid] = session
+        history = session.history
 
     old_model = rag_service._get_model()
     # Set the used model
@@ -145,13 +156,21 @@ def answer(req: ChatReq):
     if len(history) > _MAX_SESSION_MESSAGES:
         history = history[-_MAX_SESSION_MESSAGES:]
     with _SESSIONS_LOCK:
-        _SESSIONS[sid] = history
+        session = _SESSIONS.get(sid)
+        if session is None:
+            session = Session(id=sid, history=[], tokens_used=0)
+            _SESSIONS[sid] = session
+        session.id = sid
+        session.history = history
+        session.tokens_used += ans.tokens_used
+        tokens_used_total = session.tokens_used
 
     return {
         "answer": ans.answer,
         "sources": ans.sources,
         "session_id": sid,
-        "tokens": ans.tokens_used
+        "tokens": ans.tokens_used,
+        "tokens_used_total": tokens_used_total
     }
 
 

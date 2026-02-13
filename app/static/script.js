@@ -7,6 +7,7 @@ const textAsk = document.getElementById("askText");
 
 const ingestOut = document.getElementById("ingestOut");
 const answerOut = document.getElementById("answerOut");
+const tokensUsed = document.getElementById("tokensUsed");
 
 textAsk.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
@@ -57,6 +58,7 @@ ingestBtn.onclick = async () => {
 // Handle ask button click
 askBtn.onclick = async () => {
   answerOut.textContent = "Thinking...";
+  tokensUsed.textContent = "Tokens used: - | Total: -";
   const question = textAsk.value;
 
   const res = await fetch("/answer", {
@@ -78,6 +80,8 @@ askBtn.onclick = async () => {
     return;
   }
   console.log(body)
+
+  tokensUsed.textContent = `Tokens used: ${body.tokens} | Total: ${body.tokens_used_total}`;
 
   let out = body.answer;
   if (body.session_id) {
