@@ -50,7 +50,6 @@ class Model:
     def generate_response(
         self,
         messages: list[dict[str, str]],
-        temperature: float = 0.2
     ) -> ModelResponse | ModelError:
         """Generate response from a list of messages"""
         client = self._get_client()
@@ -58,7 +57,6 @@ class Model:
             resp = client.chat.completions.create(
                 model=self._cfg.chat_model,
                 messages=messages,
-                temperature=temperature,
             )
         except NotFoundError:
             return ModelError.InvalidModel

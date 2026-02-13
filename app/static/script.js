@@ -9,6 +9,11 @@ const ingestOut = document.getElementById("ingestOut");
 const answerOut = document.getElementById("answerOut");
 const tokensUsed = document.getElementById("tokensUsed");
 
+const modelsSelect = document.getElementById("modelsList");
+
+var models = [];
+var selected_model_id = null;
+
 textAsk.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
@@ -28,6 +33,9 @@ let sessionId = null;
 try {
   sessionId = localStorage.getItem("sessionId") || null;
 } catch { }
+
+// Get the all models
+initModels();
 
 // Handle ingest button click
 ingestBtn.onclick = async () => {
@@ -67,7 +75,7 @@ askBtn.onclick = async () => {
     body: JSON.stringify({
       question: question,
       session_id: sessionId,
-      model: null,
+      model: selected_model_id,
     }),
   }).catch((e) => {
     ingestOut.textContent = String(e);
@@ -100,8 +108,49 @@ askBtn.onclick = async () => {
   answerOut.textContent = out;
 };
 
+modelsSelect.onchange = async (e) => {
+  selected_model_id = modelsSelect.value;
+}
+
 async function readBody(res) {
   const ct = (res.headers.get("content-type") || "").toLowerCase();
   if (ct.includes("application/json")) return await res.json();
   return await res.text();
 }
+
+async function initModels() {
+  // Get all the models
+  const res = await fetch("/models", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  }).catch((e) => {
+    console.log(e);
+    return;
+  });
+  const body = await readBody(res);
+  const models_list = body.models.data;
+
+  // Get the currently selected model
+  const res_model = await fetch("/selectedModel", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  }).catch((e) => {
+    console.log(e);
+    return;
+  });
+  const body_model = await readBody(res_model);
+  selected_model_id = body_model.model_id;
+
+  // Initialize models list
+  models_list.forEach(function (model, i) {
+    models.push({"id": model.id, "provider": "openai"})
+    var opt = document.createElement("option");
+    opt.value = model.id;
+    opt.textContent = model.id;
+    if (selected_model_id == model.id) {
+      opt.selected = true;
+    }
+    modelsSelect.appendChild(opt);
+  });
+}
+

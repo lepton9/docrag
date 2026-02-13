@@ -99,7 +99,7 @@ class RagService:
         user_text = ("CONTEXT\n" + context + "\n\n" + "QUESTION\n" + prompt)
         messages.append({"role": "user", "content": user_text})
 
-        res = self._get_model().generate_response(messages, temperature=0.2)
+        res = self._get_model().generate_response(messages)
         if (isinstance(res, ModelError)):
             return res
 

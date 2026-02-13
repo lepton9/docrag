@@ -85,6 +85,12 @@ def models():
     return {"models": models}
 
 
+@app.get("/selectedModel")
+def selectedModel():
+    model = rag_service._get_model()
+    return {"model_id": model.cfg.chat_model}
+
+
 @app.post("/ingest")
 async def ingest(req: IngestReq):
     """Add a list of domains to the data store."""
