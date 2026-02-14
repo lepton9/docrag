@@ -46,12 +46,32 @@ try {
 // Get the all models
 initModels();
 
+// Handle ingest view toggle
 toggleSitesBtn.onclick = () => {
   setSitesView(!showSitesList);
 };
 
 // Handle ingest button click
 ingestBtn.onclick = async () => {
+  await ingestSites();
+};
+
+// Handle ask button click
+askBtn.onclick = async () => {
+  await handleAsk();
+};
+
+modelsSelect.onchange = async (_e) => {
+  selected_model_id = modelsSelect.value;
+}
+
+async function readBody(res) {
+  const ct = (res.headers.get("content-type") || "").toLowerCase();
+  if (ct.includes("application/json")) return await res.json();
+  return await res.text();
+}
+
+async function ingestSites() {
   ingestOut.textContent = "Ingesting...";
 
   const urls = textUrls
@@ -78,10 +98,9 @@ ingestBtn.onclick = async () => {
   if (res.ok) {
     getIngestedSites();
   }
-};
+}
 
-// Handle ask button click
-askBtn.onclick = async () => {
+async function handleAsk() {
   answerOut.textContent = "Thinking...";
   tokensUsed.textContent = "Tokens used: - | Total: -";
   const question = textAsk.value;
@@ -123,16 +142,6 @@ askBtn.onclick = async () => {
     }
   }
   answerOut.textContent = out;
-};
-
-modelsSelect.onchange = async (_e) => {
-  selected_model_id = modelsSelect.value;
-}
-
-async function readBody(res) {
-  const ct = (res.headers.get("content-type") || "").toLowerCase();
-  if (ct.includes("application/json")) return await res.json();
-  return await res.text();
 }
 
 async function initModels() {
