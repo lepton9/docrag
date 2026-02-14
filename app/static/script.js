@@ -1,6 +1,7 @@
 
 const ingestBtn = document.getElementById("ingestBtn");
 const askBtn = document.getElementById("askBtn");
+const toggleSitesBtn = document.getElementById("toggleSitesBtn");
 
 const textUrls = document.getElementById("urlsText");
 const textAsk = document.getElementById("askText");
@@ -10,6 +11,14 @@ const answerOut = document.getElementById("answerOut");
 const tokensUsed = document.getElementById("tokensUsed");
 
 const modelsSelect = document.getElementById("modelsList");
+const ingestedSitesList = document.getElementById("ingestedSitesList");
+
+const ingestForm = document.getElementById("ingestForm");
+const sitesView = document.getElementById("sitesView");
+const sitesCount = document.getElementById("sitesCount");
+const sitesStatus = document.getElementById("sitesStatus");
+
+var showSitesList = false;
 
 var models = [];
 var selected_model_id = null;
@@ -37,6 +46,10 @@ try {
 // Get the all models
 initModels();
 
+toggleSitesBtn.onclick = () => {
+  setSitesView(!showSitesList);
+};
+
 // Handle ingest button click
 ingestBtn.onclick = async () => {
   ingestOut.textContent = "Ingesting...";
@@ -61,6 +74,10 @@ ingestBtn.onclick = async () => {
   const body = await readBody(res);
   console.log(body)
   ingestOut.textContent = JSON.stringify(body, null, 2);
+
+  if (res.ok) {
+    getIngestedSites();
+  }
 };
 
 // Handle ask button click
@@ -108,7 +125,7 @@ askBtn.onclick = async () => {
   answerOut.textContent = out;
 };
 
-modelsSelect.onchange = async (e) => {
+modelsSelect.onchange = async (_e) => {
   selected_model_id = modelsSelect.value;
 }
 
@@ -142,8 +159,8 @@ async function initModels() {
   selected_model_id = body_model.model_id;
 
   // Initialize models list
-  models_list.forEach(function (model, i) {
-    models.push({"id": model.id, "provider": "openai"})
+  models_list.forEach(function(model, i) {
+    models.push({ "id": model.id, "provider": "openai" })
     var opt = document.createElement("option");
     opt.value = model.id;
     opt.textContent = model.id;
@@ -154,3 +171,49 @@ async function initModels() {
   });
 }
 
+function setSitesView(show) {
+  showSitesList = Boolean(show);
+  ingestForm.hidden = showSitesList;
+  sitesView.hidden = !showSitesList;
+  toggleSitesBtn.textContent = showSitesList ? "Back" : "View sites";
+
+  getIngestedSites();
+}
+
+async function getIngestedSites() {
+  if (!ingestedSitesList) return;
+
+  ingestedSitesList.textContent = "";
+  sitesStatus.textContent = "Loading...";
+
+  let res;
+  try {
+    res = await fetch("/sites", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    console.log(e);
+    sitesStatus.textContent = `Failed to load sites: ${String(e)}`;
+    return;
+  }
+
+  const body = await readBody(res);
+  const sites_list = body.sites;
+
+  if (!res.ok) {
+    sitesStatus.textContent = `Failed to load sites: ${typeof body === "string"
+      ? body : JSON.stringify(body)}`;
+    sitesCount.textContent = "";
+    return;
+  }
+
+  sites_list.forEach((s) => {
+    const li = document.createElement("li");
+    li.textContent = s;
+    ingestedSitesList.appendChild(li);
+  });
+
+  sitesCount.textContent = `Sites: ${sites_list.length}`;
+  sitesStatus.textContent = sites_list.length ? "" : "No sites ingested.";
+}

@@ -13,10 +13,23 @@
   <div class="sections">
     <section id="ingest">
       <div>
-        <p class="section-header">Add sites</p>
-        <textarea id="urlsText" placeholder="https://example.com"></textarea>
-        <button id="ingestBtn">Ingest</button>
-        <pre id="ingestOut"></pre>
+        <div class="flex-inline">
+          <p class="section-header">Add sites</p>
+          <button id="toggleSitesBtn" class="button-small">View sites</button>
+        </div>
+
+        <div id="ingestForm">
+          <textarea id="urlsText" placeholder="https://example.com"></textarea>
+          <button id="ingestBtn">Ingest</button>
+          <pre id="ingestOut"></pre>
+        </div>
+
+        <div id="sitesView" hidden>
+          <span id="sitesCount" class="meta-text"></span>
+          <p id="sitesStatus" class="meta-text"></p>
+          <ul id="ingestedSitesList" class="sites-list"></ul>
+        </div>
+
       </div>
     </section>
 
@@ -24,9 +37,9 @@
       <div>
         <p class="section-header">Chat</p>
         <textarea id="askText"></textarea>
-        <div class="ask-row">
+        <div class="flex-inline">
           <button id="askBtn">Ask</button>
-          <span id="tokensUsed" class="token-meta"></span>
+          <span id="tokensUsed" class="meta-text"></span>
           <select id="modelsList" class="models-list"></select>
         </div>
         <pre id="answerOut"></pre>

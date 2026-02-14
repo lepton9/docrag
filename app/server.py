@@ -28,11 +28,13 @@ if str(_REPO_ROOT) not in sys.path:
 PORT = "8000"
 HOST = "127.0.0.1"
 
+
 @dataclass
 class Session:
     id: str
     history: list[ChatMessage]
     tokens_used: int
+
 
 _SESSIONS_LOCK = threading.Lock()
 _SESSIONS: dict[str, Session] = {}
@@ -89,6 +91,18 @@ def models():
 def selectedModel():
     model = rag_service._get_model()
     return {"model_id": model.cfg.chat_model}
+
+
+@app.get("/sites")
+def sites():
+    """Get all the pages that are in the index."""
+    try:
+        index_store = IndexStore.load()
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    sites = [site.url for site in index_store.docs]
+    return {"sites": list(set(sites))}
 
 
 @app.post("/ingest")
@@ -153,7 +167,8 @@ def answer(req: ChatReq):
     if (isinstance(ans, ModelError)):
         if (ans == ModelError.InvalidModel):
             rag_service.model = old_model
-            raise HTTPException(status_code=400, detail=f"Invalid model '{req.model}'")
+            raise HTTPException(
+                status_code=400, detail=f"Invalid model '{req.model}'")
         raise HTTPException(status_code=400, detail=str(ans))
 
     # Add to history
