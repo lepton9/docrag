@@ -124,9 +124,15 @@ class IndexStore:
         return hits
 
 
-def build_and_save(
+def append_and_save(
     chunks: list[ChunkDoc],
     data_dir: str | None = None,
 ) -> dict:
-    store = IndexStore.build(chunks, data_dir=data_dir)
-    return store.save()
+    try:
+        old_store = IndexStore.load(data_dir)
+        new_chunks = old_store.docs
+        new_chunks.extend(chunks)
+        index_store = IndexStore.build(new_chunks, data_dir)
+    except FileNotFoundError:
+        index_store = IndexStore.build(chunks, data_dir)
+    return index_store.save()

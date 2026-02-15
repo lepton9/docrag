@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from rag import ChatMessage, rag_service
 from model import ModelError
-from index_store import build_and_save, IndexStore
+from index_store import IndexStore, append_and_save
 from crawler import crawl_async
 from config import CHUNK_OVERLAP, CHUNK_SIZE, MAX_DEPTH, MAX_PAGES, TOP_K
 from chunker import chunk_pages
@@ -137,10 +137,11 @@ async def ingest(req: IngestReq):
         raise HTTPException(
             status_code=400, detail="No text extracted from provided sites")
 
-    meta = build_and_save(chunks)
+    meta = append_and_save(chunks)
     return {
-        "pages": len(pages),
-        "chunks": meta["chunks"],
+        "total_chunks": meta["chunks"],
+        "added_chunks": len(chunks),
+        "added_pages": len(pages),
         "added_domains": sorted(urls),
     }
 
