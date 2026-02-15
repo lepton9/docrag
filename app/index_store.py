@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -103,6 +104,12 @@ class IndexStore:
                 docs.append(ChunkDoc(**obj))
 
         return cls(index=index, docs=docs, data_dir=data_dir)
+
+    def clear(self) -> None:
+        """Delete the data index."""
+        idx_path, docs_path = _paths(self.data_dir)
+        os.remove(idx_path)
+        os.remove(docs_path)
 
     def search(self, top_k: int, query: str) -> list[tuple[float, ChunkDoc]]:
         """Search for relevant content from the embeddings."""

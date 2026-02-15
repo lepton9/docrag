@@ -2,6 +2,7 @@
 const ingestBtn = document.getElementById("ingestBtn");
 const askBtn = document.getElementById("askBtn");
 const toggleSitesBtn = document.getElementById("toggleSitesBtn");
+const clearBtn = document.getElementById("clearBtn");
 
 const textUrls = document.getElementById("urlsText");
 const textAsk = document.getElementById("askText");
@@ -59,6 +60,11 @@ ingestBtn.onclick = async () => {
 // Handle ask button click
 askBtn.onclick = async () => {
   await handleAsk();
+};
+
+// Handle clear button click
+clearBtn.onclick = async () => {
+  await clearSites();
 };
 
 modelsSelect.onchange = async (_e) => {
@@ -190,8 +196,6 @@ function setSitesView(show) {
 }
 
 async function getIngestedSites() {
-  if (!ingestedSitesList) return;
-
   ingestedSitesList.textContent = "";
   sitesStatus.textContent = "Loading...";
 
@@ -225,4 +229,16 @@ async function getIngestedSites() {
 
   sitesCount.textContent = `Sites: ${sites_list.length}`;
   sitesStatus.textContent = sites_list.length ? "" : "No sites ingested.";
+}
+
+async function clearSites() {
+  let res;
+  try {
+    res = await fetch("/clear", { method: "POST" });
+  } catch (e) {
+    console.log(e);
+    sitesStatus.textContent = `Failed to clear sites: ${String(e)}`;
+    return;
+  }
+  await getIngestedSites();
 }

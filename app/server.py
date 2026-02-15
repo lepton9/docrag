@@ -105,6 +105,17 @@ def sites():
     return {"sites": list(set(sites))}
 
 
+@app.post("/clear")
+def clear():
+    """Clear the data index."""
+    try:
+        index_store = IndexStore.load()
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    index_store.clear()
+    return {"ok": True}
+
+
 @app.post("/ingest")
 async def ingest(req: IngestReq):
     """Add a list of domains to the data store."""
@@ -130,7 +141,7 @@ async def ingest(req: IngestReq):
     return {
         "pages": len(pages),
         "chunks": meta["chunks"],
-        "allowed_domains": sorted(urls),
+        "added_domains": sorted(urls),
     }
 
 

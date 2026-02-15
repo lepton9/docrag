@@ -9,17 +9,20 @@ from config import OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_CHAT_MODEL, OPENAI_EM
 
 MAX_TOKENS_EMBED = 300_000
 
-# TODO: use the type
-class ModelType(Enum):
+
+class ModelType(Enum):  # TODO: use the type
     OpenAI = 1
+
 
 class ModelError(Enum):
     InvalidModel = 1
+
 
 @dataclass
 class ModelResponse:
     text: str
     tokens_used: int = 0
+
 
 @dataclass(frozen=True)
 class ModelConfig:
@@ -103,12 +106,10 @@ class Model:
 
         return [r.embedding for r in datas]
 
-
     def get_models(self):
         """Get all the models."""
         client = self._get_client()
         return client.models.list()
-
 
     @staticmethod
     def get_model(model_name: str) -> Model:
@@ -123,7 +124,6 @@ class Model:
         )
         return Model(cfg)
 
-
     @staticmethod
     def from_env() -> Model:
         """Create Model from env variables."""
@@ -137,5 +137,5 @@ def default_model() -> Model:
 
 def calc_tokens_approx(text: str) -> int:
     """Approximate the token count of the text."""
-    char_to_token = 4
+    char_to_token = 5
     return len(text) // char_to_token
