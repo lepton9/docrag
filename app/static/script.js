@@ -45,7 +45,7 @@ try {
 } catch { }
 
 // Get the all models
-initModels();
+initState();
 
 // Handle ingest view toggle
 toggleSitesBtn.onclick = () => {
@@ -150,9 +150,8 @@ async function handleAsk() {
   answerOut.textContent = out;
 }
 
-async function initModels() {
-  // Get all the models
-  const res = await fetch("/models", {
+async function initState() {
+  const res = await fetch("/getState", {
     method: "GET",
     headers: { "Content-Type": "application/json" },
   }).catch((e) => {
@@ -160,21 +159,13 @@ async function initModels() {
     return;
   });
   const body = await readBody(res);
-  const models_list = body.models.data;
+  console.log(body)
 
-  // Get the currently selected model
-  const res_model = await fetch("/selectedModel", {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-  }).catch((e) => {
-    console.log(e);
-    return;
-  });
-  const body_model = await readBody(res_model);
-  selected_model_id = body_model.model_id;
+  const models_list = body.models;
+  selected_model_id = body.model_id;
 
   // Initialize models list
-  models_list.forEach(function(model, i) {
+  models_list.forEach(function(model, _i) {
     models.push({ "id": model.id, "provider": "openai" })
     var opt = document.createElement("option");
     opt.value = model.id;

@@ -81,16 +81,16 @@ def health():
     return {"ok": True}
 
 
-@app.get("/models")
-def models():
+@app.get("/getState")
+def getState():
     models = rag_service.get_all_models()
-    return {"models": models}
-
-
-@app.get("/selectedModel")
-def selectedModel():
     model = rag_service._get_model()
-    return {"model_id": model.cfg.chat_model}
+    return {
+        "model_id": model.cfg.chat_model,
+        "models": models.data,
+        "default_max_depth": MAX_DEPTH,
+        "default_max_pages": MAX_PAGES,
+    }
 
 
 @app.get("/sites")
